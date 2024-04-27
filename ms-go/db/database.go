@@ -32,7 +32,7 @@ func Connection() *mongo.Collection {
 	}
 
 	// Set the database and collection variables
-	db = client.Database("teste_backend").Collection("products")
+	db = client.Database("icasei-test").Collection("products")
 
 	return db
 }
