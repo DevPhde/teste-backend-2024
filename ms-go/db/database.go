@@ -15,7 +15,7 @@ func Connection() *mongo.Collection {
 	var err error
 
 	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://mongodb:27017")
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
 	// Connect to MongoDB
 	client, err = mongo.Connect(context.Background(), clientOptions)
@@ -32,7 +32,7 @@ func Connection() *mongo.Collection {
 	}
 
 	// Set the database and collection variables
-	db = client.Database("icasei-test").Collection("products")
+	db = client.Database("icasei").Collection("products")
 
 	return db
 }
