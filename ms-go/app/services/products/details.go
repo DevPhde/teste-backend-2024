@@ -1,27 +1,25 @@
 package products
 
 import (
-	"context"
 	"ms-go/app/helpers"
 	"ms-go/app/models"
-	"ms-go/db"
+	"ms-go/app/repositories"
 	"net/http"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
-func Details(data models.Product) (*models.Product, error) {
+func Datails(productId int) (*models.Product, error) {
 
-	if data.ID == 0 {
-		return nil, &helpers.GenericError{Msg: "Missing params", Code: http.StatusUnprocessableEntity}
+	if productId == 0 {
+		return nil, &helpers.GenericError{Msg: "Missing params", Code: http.StatusBadRequest}
 	}
 
-	var product models.Product
-	if err := db.Connection().FindOne(context.TODO(), bson.M{"id": data.ID}).Decode(&product); err != nil {
-		return nil, &helpers.GenericError{Msg: "Product Not Found", Code: http.StatusNotFound}
+	product, err := repositories.GetProductById(productId)
+	if err != nil {
+		if product != nil {
+			return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusNotFound}
+		}
+		return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}
 	}
 
-	defer db.Disconnect()
-
-	return &product, nil
+	return product, nil
 }
