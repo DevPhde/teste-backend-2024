@@ -24,10 +24,10 @@ func SetupRouter() *gin.Engine {
 
 	apiV1 := router.Group("/api/v1")
 	{
-		apiV1.GET("/products", controller.IndexProducts)
-		apiV1.GET("/products/:id", controller.ShowProducts)
-		apiV1.POST("/products", controller.CreateProducts)
-		apiV1.PATCH("/products/:id", controller.UpdateProducts)
+		apiV1.GET("/products", controller.ListProducts)
+		apiV1.GET("/products/:id", controller.ShowProduct)
+		apiV1.POST("/products", controller.CreateProduct)
+		apiV1.PATCH("/products/:id", controller.UpdateProduct)
 	}
 
 	router.NoRoute(func(c *gin.Context) {
