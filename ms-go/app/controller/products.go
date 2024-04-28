@@ -10,35 +10,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func IndexProducts(c *gin.Context) {
-	all, err := products.ListAll()
+func ListProducts(c *gin.Context) {
+	page, _ := strconv.Atoi(c.Query("page"))
+	itemsLimit, _ := strconv.Atoi(c.Query("itemsLimit"))
 
+	response, err := products.PaginateList(page, itemsLimit)
 	if err != nil {
-		switch err.(type) {
+		switch typedErr := err.(type) {
 		case *helpers.GenericError:
-			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": err.Error()})
+			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": typedErr.Error()})
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": typedErr.Error()})
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": all})
+	c.JSON(http.StatusOK, gin.H{"response": response})
 }
 
-func ShowProducts(c *gin.Context) {
+func ShowProduct(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	product, err := products.Details(models.Product{ID: id})
+	product, err := products.Datails(id)
 
 	if err != nil {
-		switch err.(type) {
+		switch typedErr := err.(type) {
 		case *helpers.GenericError:
-			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": err.Error()})
+			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": typedErr.Error()})
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": typedErr.Error()})
 			return
 		}
 	}
@@ -46,7 +48,7 @@ func ShowProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": product})
 }
 
-func CreateProducts(c *gin.Context) {
+func CreateProduct(c *gin.Context) {
 	var params models.Product
 
 	if err := c.BindJSON(&params); err != nil {
@@ -57,19 +59,19 @@ func CreateProducts(c *gin.Context) {
 	product, err := products.Create(params, true)
 
 	if err != nil {
-		switch err.(type) {
+		switch typedErr := err.(type) {
 		case *helpers.GenericError:
-			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": err.Error()})
+			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": typedErr.Error()})
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": typedErr.Error()})
 			return
 		}
 	}
 	c.JSON(http.StatusCreated, gin.H{"data": product})
 }
 
-func UpdateProducts(c *gin.Context) {
+func UpdateProduct(c *gin.Context) {
 	var params models.Product
 
 	if err := c.BindJSON(&params); err != nil {
@@ -84,12 +86,12 @@ func UpdateProducts(c *gin.Context) {
 	product, err := products.Update(params, true)
 
 	if err != nil {
-		switch err.(type) {
+		switch typedErr := err.(type) {
 		case *helpers.GenericError:
-			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": err.Error()})
+			c.JSON(err.(*helpers.GenericError).Code, gin.H{"message": typedErr.Error()})
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": typedErr.Error()})
 			return
 		}
 	}
