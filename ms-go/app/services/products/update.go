@@ -1,46 +1,44 @@
 package products
 
 import (
-	"context"
 	"ms-go/app/helpers"
+	"ms-go/app/kafka/producers"
 	"ms-go/app/models"
-	"ms-go/db"
+	"ms-go/app/repositories"
 	"net/http"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
-func Update(data models.Product, isAPI bool) (*models.Product, error) {
+func Update(data models.Product, sendMessage bool) (*models.Product, error) {
 
 	if data.ID == 0 {
 		return nil, &helpers.GenericError{Msg: "Missing parameters", Code: http.StatusUnprocessableEntity}
 	}
 
-	var product models.Product
-
-	if err := db.Connection().FindOne(context.TODO(), bson.M{"id": data.ID}).Decode(&product); err != nil {
-		return nil, &helpers.GenericError{Msg: "Product Not Found", Code: http.StatusNotFound}
+	product, err := repositories.GetProductById(data.ID)
+	if err != nil {
+		if product != nil {
+			return nil, &helpers.GenericError{Msg: "Product Not Found", Code: http.StatusNotFound}
+		}
+		return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}
 	}
+	var originalProduct = *product
 
-	data.UpdatedAt = time.Now()
+	setUpdate(&data, product)
 
-	setUpdate(&data, &product)
-
-	if err := db.Connection().FindOneAndUpdate(context.TODO(), bson.M{"id": data.ID}, bson.M{"$set": data}).Decode(&product); err != nil {
+	if err := repositories.UpdateProduct(data); err != nil {
 		return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}
 	}
 
-	if err := db.Connection().FindOne(context.TODO(), bson.M{"id": data.ID}).Decode(&product); err != nil {
-		return nil, &helpers.GenericError{Msg: "Product Not Found", Code: http.StatusNotFound}
+	if sendMessage {
+		err := producers.ProductProducer(data, "update")
+		if err != nil {
+			repositories.RollBackProduct(originalProduct)
+			return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}
+		}
 	}
 
-	defer db.Disconnect()
-
-	if isAPI {
-	}
-
-	return &product, nil
+	return &data, nil
 }
 
 func setUpdate(new, old *models.Product) {
@@ -62,6 +60,10 @@ func setUpdate(new, old *models.Product) {
 
 	if new.Description == "" {
 		new.Description = old.Description
+	}
+
+	if new.Stock == 0 {
+		new.Stock = old.Stock
 	}
 
 	new.CreatedAt = old.CreatedAt

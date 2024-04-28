@@ -2,28 +2,24 @@ package products
 
 import (
 	"context"
-	"ms-go/app/helpers"
-	"ms-go/app/models"
-	"ms-go/db"
 	"net/http"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"ms-go/app/helpers"
+	"ms-go/app/kafka/producers"
+	"ms-go/app/models"
+	"ms-go/app/repositories"
 )
 
-func Create(data models.Product, isAPI bool) (*models.Product, error) {
+func Create(data models.Product, sendMessage bool) (*models.Product, error) {
 
 	if data.ID == 0 {
-		var max models.Product
+		id, err := repositories.GetProductNextId(context.TODO())
+		if err != nil {
+			return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}
+		}
 
-		opts := options.FindOne()
-
-		opts.SetSort(bson.D{{Key: "created_at", Value: -1}})
-
-		db.Connection().FindOne(context.TODO(), bson.D{}, opts).Decode(&max)
-
-		data.ID = max.ID + 1
+		data.ID = id
 	}
 
 	if err := data.Validate(); err != nil {
@@ -33,15 +29,16 @@ func Create(data models.Product, isAPI bool) (*models.Product, error) {
 	data.CreatedAt = time.Now()
 	data.UpdatedAt = data.CreatedAt
 
-	_, err := db.Connection().InsertOne(context.TODO(), data)
-
-	if err != nil {
+	if _, err := repositories.Create(data); err != nil {
 		return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}
 	}
 
-	defer db.Disconnect()
-
-	if isAPI {
+	if sendMessage {
+		err := producers.ProductProducer(data, "create")
+		if err != nil {
+			repositories.SecurityRemovalProduct(data.ID)
+			return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}
+		}
 	}
 
 	return &data, nil
