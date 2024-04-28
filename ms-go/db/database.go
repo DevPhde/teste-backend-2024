@@ -32,7 +32,11 @@ func Connection() *mongo.Collection {
 	}
 
 	// Set the database and collection variables
+<<<<<<< HEAD
 	db = client.Database("icasei").Collection("products")
+=======
+	db = client.Database("teste_backend").Collection("products")
+>>>>>>> parent of adf92e2 ([BUILD] Removed Ruby codes, docker and documentation)
 
 	return db
 }
