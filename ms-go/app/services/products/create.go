@@ -34,7 +34,8 @@ func Create(data models.Product, sendMessage bool) (*models.Product, error) {
 	}
 
 	if sendMessage {
-		err := producers.ProductProducer(data, "create")
+		productCopy := data
+		err := producers.ProductProducer(productCopy, "create")
 		if err != nil {
 			repositories.SecurityRemovalProduct(data.ID)
 			return nil, &helpers.GenericError{Msg: err.Error(), Code: http.StatusInternalServerError}

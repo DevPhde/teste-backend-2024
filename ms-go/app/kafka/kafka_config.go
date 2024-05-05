@@ -7,12 +7,12 @@ import (
 func KafkaConfiguration() (*kafka.Writer, *kafka.Reader) {
 
 	publisher := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{"localhost:9092"},
+		Brokers: []string{"kafka:29092"},
 		Topic:   "go-to-rails",
 	})
 
 	consumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{"localhost:9092"},
+		Brokers: []string{"kafka:29092"},
 		Topic:   "rails-to-go",
 	})
 
