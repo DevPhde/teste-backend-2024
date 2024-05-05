@@ -24,4 +24,8 @@ RUN mkdir -p $INSTALL_PATH/tmp/pids
 
 RUN chmod +x run.sh
 
-CMD ["./run.sh"]
+RUN bundle update
+
+EXPOSE 3000
+
+CMD ["rails", "s"]

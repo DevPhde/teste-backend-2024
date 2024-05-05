@@ -1,6 +1,9 @@
 class Api::V1::ProductsController < ApplicationController
   def index
-    default_render json: ::Services::Api::V1::Products::ListAll.new(product_params, request).execute, status: 200
+    paginated_index = Services::Api::V1::Products::PaginatedIndex.new(params, request)
+    paginated_data = paginated_index.execute
+
+    render json: paginated_data
   end
 
   def show
@@ -8,11 +11,11 @@ class Api::V1::ProductsController < ApplicationController
   end
 
   def create
-    default_render json: ::Services::Api::V1::Products::Upsert.new(product_params.merge({is_api: true}), request).execute, status: 201
+    default_render json: ::Services::Api::V1::Products::Upsert.new(product_params.merge({is_api: true}), request, 'create').execute, status: 201
   end
 
   def update
-    default_render json: ::Services::Api::V1::Products::Upsert.new(product_params.merge({is_api: true}), request).execute, status: 200
+    default_render json: ::Services::Api::V1::Products::Upsert.new(product_params.merge({is_api: true}), request, 'update').execute, status: 200
   end
 
   private
@@ -23,7 +26,8 @@ class Api::V1::ProductsController < ApplicationController
         :name,
         :brand,
         :price,
-        :description
+        :description,
+        :stock
       ]
     )
   end
