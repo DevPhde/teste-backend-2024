@@ -3,9 +3,9 @@ FROM ruby:3.0.0-alpine3.13
 LABEL maintainer="Matheus M<mmacedo@icasei.com.br>"
 
 RUN apk --update --upgrade add \
-      bash\
-      sqlite-dev\
-      build-base\
+      bash \
+      sqlite-dev \
+      build-base \
       tzdata
 
 ENV INSTALL_PATH /ms-rails
@@ -22,10 +22,8 @@ ADD . $INSTALL_PATH
 
 RUN mkdir -p $INSTALL_PATH/tmp/pids
 
-RUN chmod +x run.sh
-
 RUN bundle update
 
 EXPOSE 3000
 
-CMD ["rails", "s"]
+CMD ["sh", "-c", "bundle exec rails db:reset && bundle exec puma -C config/puma.rb"]
