@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Espera até que o Kafka esteja disponível
 echo "Esperando o Kafka ficar disponível..."
 while ! nc -z kafka 29092; do
   sleep 1
