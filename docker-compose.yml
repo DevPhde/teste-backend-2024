@@ -10,6 +10,8 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    hostname: kafka
+    container_name: kafka
     networks: 
       - broker-kafka
     depends_on:
@@ -24,7 +26,6 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_CREATE_TOPICS: order-topic:3:1
 
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
@@ -36,6 +37,17 @@ services:
       - 19000:9000
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
+
+  init-kafka:
+    container_name: init-kafka
+    image: confluentinc/cp-kafka:6.2.1
+    depends_on:
+      - kafka
+    networks: 
+      - broker-kafka
+    volumes:
+      - ./init-topics.sh:/init-topics.sh
+    entrypoint: [ '/bin/bash', '/init-topics.sh' ]
 
   ms-rails:
     build:
