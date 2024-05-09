@@ -26,4 +26,4 @@ RUN bundle update
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "bundle exec rails db:reset && bundle exec puma -C config/puma.rb"]
+CMD ["bundle", "exec", "puma", "config.ru"]
