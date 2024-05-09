@@ -28,9 +28,9 @@ module Services
             has_next_page = (page.to_i * limit.to_i) < total_count
 
             {
-              data: products,
-              total_pages: total_pages,
-              has_next_page: has_next_page
+              data: products.present? ? products : [],
+              has_next_page: has_next_page,
+              total_pages: total_pages
             }
           end
         end
